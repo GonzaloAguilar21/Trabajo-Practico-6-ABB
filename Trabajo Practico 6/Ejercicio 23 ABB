@@ -1,0 +1,244 @@
+class Nodo:
+    def __init__(self, criatura, derrotador):
+        self.criatura = criatura
+        self.derrotador = derrotador
+        self.descripcion = ""
+        self.capturada_por = None
+        self.izq = None
+        self.der = None
+
+class Arbol:
+    def __init__(self):
+        self.raiz = None
+
+    def insertar(self, nodo, criatura, derrotador):
+        if nodo is None:
+            return Nodo(criatura, derrotador)
+
+        if criatura < nodo.criatura:
+            nodo.izq = self.insertar(nodo.izq, criatura, derrotador)
+        else:
+            nodo.der = self.insertar(nodo.der, criatura, derrotador)
+
+        return nodo
+
+    def insertar_criatura(self, criatura, derrotador):
+        self.raiz = self.insertar(self.raiz, criatura, derrotador)
+
+    def inorden(self, nodo, lista):
+        if nodo:
+            self.inorden(nodo.izq, lista)
+            lista.append(nodo)
+            self.inorden(nodo.der, lista)
+
+    def listar_criaturas(self):
+        lista = []
+        self.inorden(self.raiz, lista)
+        return [(nodo.criatura, nodo.derrotador) for nodo in lista]
+
+    def buscar(self, nodo, nombre_criatura):
+        if nodo is None:
+            return None
+        if nodo.criatura == nombre_criatura:
+            return nodo
+        elif nombre_criatura < nodo.criatura:
+            return self.buscar(nodo.izq, nombre_criatura)
+        else:
+            return self.buscar(nodo.der, nombre_criatura)
+
+    def buscar_criatura(self, nombre_criatura):
+        return self.buscar(self.raiz, nombre_criatura)
+
+    def listar_derrotadores(self, criatura):
+        nodo = self.buscar_criatura(criatura)
+        if nodo:
+            return nodo.derrotador
+        return None
+
+    def establecer_descripcion(self, nombre_criatura, descripcion):
+        nodo = self.buscar_criatura(nombre_criatura)
+        if nodo:
+            nodo.descripcion = descripcion
+
+    def listar_criaturas_no_derrotadas(self):
+        lista = []
+        self.inorden(self.raiz, lista)
+        return [nodo.criatura for nodo in lista if nodo.derrotador == "-"]
+
+    def capturar_criatura(self, nombre_criatura, heroe):
+        nodo = self.buscar_criatura(nombre_criatura)
+        if nodo:
+            nodo.capturada_por = heroe
+
+    def modificar_criaturas(self, criaturas_modificar, heroe):
+        for criatura in criaturas_modificar:
+            self.capturar_criatura(criatura, heroe)
+
+    def eliminar_criatura(self, nodo, nombre_criatura):
+        if nodo is None:
+            return nodo
+
+        if nombre_criatura < nodo.criatura:
+            nodo.izq = self.eliminar_criatura(nodo.izq, nombre_criatura)
+        elif nombre_criatura > nodo.criatura:
+            nodo.der = self.eliminar_criatura(nodo.der, nombre_criatura)
+        else:
+            if nodo.izq is None:
+                return nodo.der
+            elif nodo.der is None:
+                return nodo.izq
+            temp = self.minimo(nodo.der)
+            nodo.criatura = temp.criatura
+            nodo.derrotador = temp.derrotador
+            nodo.der = self.eliminar_criatura(nodo.der, temp.criatura)
+
+        return nodo
+
+    def minimo(self, nodo):
+        current = nodo
+        while current.izq is not None:
+            current = current.izq
+        return current
+
+    def eliminar(self, nombre_criatura):
+        self.raiz = self.eliminar_criatura(self.raiz, nombre_criatura)
+
+    def modificar_nodo(self, nombre_criatura, nuevo_derrotador):
+        nodo = self.buscar_criatura(nombre_criatura)
+        if nodo:
+            nodo.derrotador = nuevo_derrotador
+
+    def listar_nivel(self, nodo, nivel, resultado):
+        if nodo is not None:
+            if nivel == 0:
+                resultado.append(nodo.criatura)
+            else:
+                self.listar_nivel(nodo.izq, nivel - 1, resultado)
+                self.listar_nivel(nodo.der, nivel - 1, resultado)
+
+    def listar_por_nivel(self):
+        nivel = 0
+        resultado = []
+        while True:
+            lista_nivel = []
+            self.listar_nivel(self.raiz, nivel, lista_nivel)
+            if not lista_nivel:
+                break
+            resultado.append(lista_nivel)
+            nivel += 1
+        return resultado
+
+    def listar_capturadas_por_heracles(self):
+        lista = []
+        self.inorden(self.raiz, lista)
+        return [nodo.criatura for nodo in lista if nodo.capturada_por == "Heracles"]
+
+# Crear el árbol y agregar criaturas
+arbol = Arbol()
+arbol.insertar_criatura("Ceto", "-")
+arbol.insertar_criatura("Tifón", "Zeus")
+arbol.insertar_criatura("Equidna", "-")
+arbol.insertar_criatura("Dino", "-")
+arbol.insertar_criatura("Pefredo", "-")
+arbol.insertar_criatura("Enio", "Heracles")
+arbol.insertar_criatura("Escila", "-")
+arbol.insertar_criatura("Caribdis", "-")
+arbol.insertar_criatura("Euríale", "-")
+arbol.insertar_criatura("Esteno", "-")
+arbol.insertar_criatura("Medusa", "Perseo")
+arbol.insertar_criatura("Águila del Cáucaso", "-")
+arbol.insertar_criatura("Quimera", "Belerofonte")
+arbol.insertar_criatura("Hidra de Lerna", "Heracles")
+arbol.insertar_criatura("León de Nemea", "Heracles")
+arbol.insertar_criatura("Esfinge", "Edipo")
+arbol.insertar_criatura("Dragón de la Cólquida", "-")
+arbol.insertar_criatura("Cerbero", "-")
+arbol.insertar_criatura("Jabalí de Erimanto", "-")
+arbol.insertar_criatura("Talos", "Medea")
+arbol.insertar_criatura("Toro de Creta", "Teseo")
+arbol.insertar_criatura("Cierva de Cerinea", "-")
+arbol.insertar_criatura("Basilisco", "-")
+arbol.insertar_criatura("Jabalí de Calidón", "Atalanta")
+arbol.insertar_criatura("Sirenas", "-")
+arbol.insertar_criatura("Aves del Estínfalo", "-")
+arbol.insertar_criatura("Ladón", "Heracles")
+
+#Prueba
+#A
+print("Listado inorden de criaturas y quienes la derrotaron:")
+for criatura, derrotador in arbol.listar_criaturas():
+    print(f"{criatura} derrotado por {derrotador}")
+
+#B
+arbol.establecer_descripcion("Ceto", "Diosa de los monstruos marinos")
+arbol.establecer_descripcion("Tifón", "Gigante que desafió a los dioses")
+arbol.establecer_descripcion("Equidna", "Esposa de Tifón, madre de muchos monstruos")
+arbol.establecer_descripcion("Dino", "Criatura marina")
+arbol.establecer_descripcion("Enio", "Diosa de la guerra y la venganza")
+arbol.establecer_descripcion("Escila", "Monstruo marino que devoraba marineros")
+arbol.establecer_descripcion("Medusa", "Gorgona con mirada petrificante")
+arbol.establecer_descripcion("Quimera", "Monstruo con partes de león, cabra y serpiente")
+arbol.establecer_descripcion("Hidra de Lerna", "Monstruo de múltiples cabezas que regeneraban")
+arbol.establecer_descripcion("León de Nemea", "Bestia invulnerable")
+arbol.establecer_descripcion("Esfinge", "Criatura con cuerpo de león y cabeza de mujer")
+arbol.establecer_descripcion("Cerbero", "Perro de tres cabezas guardián del inframundo")
+arbol.establecer_descripcion("Jabalí de Erimanto", "Monstruo que devastaba los campos")
+arbol.establecer_descripcion("Talos", "Gigante de bronce que protegía a Creta")
+arbol.establecer_descripcion("Toro de Creta", "Toro sagrado de Creta")
+arbol.establecer_descripcion("Cierva de Cerinea", "Cierva sagrada de Artemisa")
+arbol.establecer_descripcion("Basilisco", "Monstruo que petrifica con la mirada")
+arbol.establecer_descripcion("Jabalí de Calidón", "Monstruo cazado por Atalanta")
+arbol.establecer_descripcion("Aves del Estínfalo", "Aves con plumaje metálico")
+arbol.establecer_descripcion("Ladón", "Dragón que guarda las manzanas de oro")
+
+#C
+talos = arbol.buscar_criatura("Talos")
+if talos:
+    print(f"Talos: Derrotador - {talos.derrotador}, Descripción - {talos.descripcion}")
+
+#D
+derrotadores = {}
+for _, derrotador in arbol.listar_criaturas():
+    if derrotador not in ["-", ""]:
+        if derrotador not in derrotadores:
+            derrotadores[derrotador] = 0
+        derrotadores[derrotador] += 1
+
+top_3_derrotadores = sorted(derrotadores.items(), key=lambda x: x[1], reverse=True)[:3]
+print("Top 3 héroes o dioses que derrotaron más criaturas:")
+for heroe, cantidad in top_3_derrotadores:
+    print(f"{heroe}: {cantidad}")
+
+#E
+print("Criaturas derrotadas por Heracles:")
+for criatura, derrotador in arbol.listar_criaturas():
+    if derrotador == "Heracles":
+        print(criatura)
+
+#F
+print("Criaturas no derrotadas:")
+for criatura in arbol.listar_criaturas_no_derrotadas():
+    print(criatura)
+
+#G
+arbol.modificar_criaturas(["Cerbero", "Toro de Creta", "Cierva de Cerinea", "Jabalí de Erimanto"], "Heracles")
+
+#H
+arbol.eliminar("Basilisco")
+arbol.eliminar("Sirenas")
+
+#I
+arbol.modificar_nodo("Aves del Estínfalo", "Heracles derrotó a varias")
+
+#J
+arbol.modificar_nodo("Ladón", "Dragón Ladón")
+
+#K
+print("Listado por nivel del árbol:")
+for nivel in arbol.listar_por_nivel():
+    print(nivel)
+
+#L
+print("Criaturas capturadas por Heracles:")
+for criatura in arbol.listar_capturadas_por_heracles():
+    print(criatura)

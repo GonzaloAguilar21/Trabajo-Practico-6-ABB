@@ -1,0 +1,164 @@
+# Definición del nodo del árbol AVL
+class NodoAVL:
+    def __init__(self, nombre, es_heroe):
+        self.nombre = nombre
+        self.es_heroe = es_heroe
+        self.altura = 1
+        self.izq = None
+        self.der = None
+
+class ArbolAVL:
+    def __init__(self):
+        self.raiz = None
+
+    def altura(self, nodo):
+        if not nodo:
+            return 0
+        return nodo.altura
+    def rotar_derecha(self, y):
+        x = y.izq
+        T2 = x.der
+
+        x.der = y
+        y.izq = T2
+
+        y.altura = max(self.altura(y.izq), self.altura(y.der)) + 1
+        x.altura = max(self.altura(x.izq), self.altura(x.der)) + 1
+
+        return x
+    def rotar_izquierda(self, x):
+        y = x.der
+        T2 = y.izq
+
+        y.izq = x
+        x.der = T2
+
+        x.altura = max(self.altura(x.izq), self.altura(x.der)) + 1
+        y.altura = max(self.altura(y.izq), self.altura(y.der)) + 1
+
+        return y
+    
+    def balance(self, nodo):
+        if not nodo:
+            return 0
+        return self.altura(nodo.izq) - self.altura(nodo.der)
+
+    def insertar(self, nodo, nombre, es_heroe):
+        if not nodo:
+            return NodoAVL(nombre, es_heroe)
+
+        if nombre < nodo.nombre:
+            nodo.izq = self.insertar(nodo.izq, nombre, es_heroe)
+        else:
+            nodo.der = self.insertar(nodo.der, nombre, es_heroe)
+
+        nodo.altura = max(self.altura(nodo.izq), self.altura(nodo.der)) + 1
+        balance = self.balance(nodo)
+
+        if balance > 1 and nombre < nodo.izq.nombre:
+            return self.rotar_derecha(nodo)
+        if balance < -1 and nombre > nodo.der.nombre:
+            return self.rotar_izquierda(nodo)
+        if balance > 1 and nombre > nodo.izq.nombre:
+            nodo.izq = self.rotar_izquierda(nodo.izq)
+            return self.rotar_derecha(nodo)
+        if balance < -1 and nombre < nodo.der.nombre:
+            nodo.der = self.rotar_derecha(nodo.der)
+            return self.rotar_izquierda(nodo)
+
+        return nodo
+
+    def insertar_personaje(self, nombre, es_heroe):
+        self.raiz = self.insertar(self.raiz, nombre, es_heroe)
+
+    def inorden(self, nodo, lista):
+        if nodo:
+            self.inorden(nodo.izq, lista)
+            lista.append(nodo)
+            self.inorden(nodo.der, lista)
+
+    def inorden_inverso(self, nodo, lista):
+        if nodo:
+            self.inorden_inverso(nodo.der, lista)
+            lista.append(nodo)
+            self.inorden_inverso(nodo.izq, lista)
+
+    def listar_villanos(self):
+        villanos = []
+        self.inorden(self.raiz, villanos)
+        return [v.nombre for v in villanos if not v.es_heroe]
+
+    def heroes_con_C(self):
+        heroes_c = []
+        self.inorden(self.raiz, heroes_c)
+        return [h.nombre for h in heroes_c if h.es_heroe and h.nombre.startswith('C')]
+
+    def contar_heroes(self):
+        heroes = []
+        self.inorden(self.raiz, heroes)
+        return sum(1 for h in heroes if h.es_heroe)
+
+    def buscar_y_modificar(self, nombre_buscado, nuevo_nombre):
+        nodo = self.buscar_por_proximidad(self.raiz, nombre_buscado)
+        if nodo:
+            print(f"Modificando nombre de {nodo.nombre} a {nuevo_nombre}")
+            nodo.nombre = nuevo_nombre
+
+    def buscar_por_proximidad(self, nodo, nombre_buscado):
+        if nodo is None:
+            return None
+        if nodo.nombre == nombre_buscado:
+            return nodo
+        if nombre_buscado < nodo.nombre:
+            return self.buscar_por_proximidad(nodo.izq, nombre_buscado)
+        return self.buscar_por_proximidad(nodo.der, nombre_buscado)
+
+    def listar_heroes_desc(self):
+        heroes_desc = []
+        self.inorden_inverso(self.raiz, heroes_desc)
+        return [h.nombre for h in heroes_desc if h.es_heroe]
+
+    def generar_bosque(self):
+        bosque_heroes = ArbolAVL()
+        bosque_villanos = ArbolAVL()
+
+        personajes = []
+        self.inorden(self.raiz, personajes)
+
+        for personaje in personajes:
+            if personaje.es_heroe:
+                bosque_heroes.insertar_personaje(personaje.nombre, True)
+            else:
+                bosque_villanos.insertar_personaje(personaje.nombre, False)
+
+        return bosque_heroes, bosque_villanos
+
+    def contar_nodos(self, nodo):
+        if not nodo:
+            return 0
+        return 1 + self.contar_nodos(nodo.izq) + self.contar_nodos(nodo.der)
+
+    def barrido_alfabetico(self):
+        personajes = []
+        self.inorden(self.raiz, personajes)
+        return [p.nombre for p in personajes]
+
+#Prueba 
+arbol_avl = ArbolAVL()
+arbol_avl.insertar_personaje("Iron Man", True)
+arbol_avl.insertar_personaje("Thanos", False)
+arbol_avl.insertar_personaje("Captain America", True)
+arbol_avl.insertar_personaje("Loki", False)
+arbol_avl.insertar_personaje("Doctor Strange", True)
+
+print("Villanos:", arbol_avl.listar_villanos())
+print("Héroes que empiezan con C:", arbol_avl.heroes_con_C())
+print("Número de superhéroes:", arbol_avl.contar_heroes())
+arbol_avl.buscar_y_modificar("Doctor Strange", "Dr. Stephen Strange")
+print("Héroes en orden descendente:", arbol_avl.listar_heroes_desc())
+bosque_heroes, bosque_villanos = arbol_avl.generar_bosque()
+print("Nodos en árbol de héroes:", bosque_heroes.contar_nodos(bosque_heroes.raiz))
+print("Nodos en árbol de villanos:", bosque_villanos.contar_nodos(bosque_villanos.raiz))
+print("Héroes alfabéticamente:", bosque_heroes.barrido_alfabetico())
+print("Villanos alfabéticamente:", bosque_villanos.barrido_alfabetico())
+
